@@ -92,7 +92,6 @@ def train_model(device, dataloaders, dataset_sizes,
         # 各エポックで訓練+バリデーションを実行
         for phase in ['train', 'val']:
             if phase == 'train':
-                scheduler.step()
                 model.train(True)
             else:
                 model.train(False)
@@ -120,6 +119,9 @@ def train_model(device, dataloaders, dataset_sizes,
                 # 統計情報
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += float(torch.sum(preds == classnums))
+
+            if phase == 'train':
+                scheduler.step()
 
             # サンプル数で割って平均を求める
             epoch_loss = running_loss / dataset_sizes[phase]
@@ -184,7 +186,6 @@ def train_and_test(filename, model, params):
     momentum = params.get("momentum", 0.90)
     step_size = params.get("step_size", 5)
     gamma = params.get("gamma", 0.1)
-    pretrained = params.get("pre_trained", True)
 
     if torch.cuda.is_available(): # GPUが利用可能か確認
         device = 'cuda'
@@ -280,7 +281,6 @@ if __name__ == "__main__":
         "batch_size":64,
         "lr":0.0005,
         "momentum":0.95,
-        "pretrained":True,
     }
     # ネットワークをGPUに送る
     device = "cpu"
