@@ -177,7 +177,7 @@ def calc_test_accuracy(device, dataloader, dataset_size, model, criterion):
     print('On Test:\tLoss: {:.4f} Acc: {:.4f}'.format(epoch_loss, epoch_acc))
     return y_true, y_pred
 
-def train_and_test(filename, params):
+def train_and_test(filename, model, params):
     batch_size = params.get("batch_size", 64)
     epochs = params.get("epochs", 5)
     lr = params.get("lr", 0.0001)
@@ -247,10 +247,6 @@ def train_and_test(filename, params):
     # 訓練, 評価, テストの画像の大きさをカウントする。
     dataset_sizes = {x: len(feature_datasets[x]) for x in ['train', 'val', 'test']}
 
-    # モデルの初期化
-    model = Net()
-    model = model.to(device)
-
     # 損失関数、
     # パラメータの最適化方法、学習率の更新方法を定義。
     criterion = nn.CrossEntropyLoss()
@@ -267,6 +263,17 @@ def train_and_test(filename, params):
     
     return model, train_loss_list, val_loss_list
 
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.fc1 = nn.Linear(906, 64)
+        self.fc2 = nn.Linear(64, 2)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+	        
 if __name__ == "__main__":
     params = {
         "epochs":10,
@@ -275,7 +282,12 @@ if __name__ == "__main__":
         "momentum":0.95,
         "pretrained":True,
     }
-    final_model, train_loss, val_loss = train_and_test("exp_data.csv", params)
+    # ネットワークをGPUに送る
+    device = "cpu"
+    model = Net()
+    model = model.to(device)
+
+    final_model, train_loss, val_loss = train_and_test("data/exp_data.csv", model, params)
 
     model_file_name = "best_model.torch"
     torch.save(final_model.state_dict(), model_file_name)
