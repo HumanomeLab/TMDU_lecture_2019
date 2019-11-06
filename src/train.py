@@ -26,6 +26,11 @@ exp_data.csvに対して、以下のことを実施する make_dataset 関数を
 クラスが0 (y==0) なら、[1, 0]
 クラスが1 (y==1) なら、[0, 1]
 """
+
+# 191106 
+def device_name():
+  return "cuda"
+
 def make_dataset(filename):
     labels = []
     # データの読み込みと特徴量の選択
